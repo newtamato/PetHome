@@ -11,6 +11,10 @@ class Global{
     
     var mUserData:NSDictionary?;
     var mAllPosts:NSMutableArray?;
+
+    var mSelectedPostIndex:Int?
+    var mComments:NSMutableDictionary?
+    
     class func shareInstance()->Global{
         struct Singleton{
             static var predicate:dispatch_once_t = 0
@@ -60,5 +64,61 @@ class Global{
         return self.mAllPosts!
     }
     
+    func setCurrentSelectedPostIndex(index:Int){
+        self.mSelectedPostIndex = index
+    }
+    func getCurrentSelectedPostData()->NSDictionary{
+
+        return (self.mAllPosts?.objectAtIndex(self.mSelectedPostIndex!) as? NSDictionary)!
+
+    }
+    func setCommentsData(posId:String,comments:NSMutableArray){
+        if (self.mComments == nil){
+            self.mComments = NSMutableDictionary()
+        }
+        if let commentsData = self.mComments?.objectForKey(posId) as? NSMutableArray {
+            commentsData.addObjectsFromArray(comments as [AnyObject])
+        }else{
+            self.mComments?.setValue(comments, forKey: posId)
+        }
+        println(self.mComments)
+    }
+    func getCommentsWith(posId:Int) ->NSMutableArray? {
+        let posId = String(posId)
+        return (self.mComments?.objectForKey(posId) as? NSMutableArray)
+    }
+    func sendComment(posId:String,commentBody:String){
+        println("send comment posId is \(posId) and body is \(commentBody)")
+        var playerId:Int = (self.mUserData?.valueForKey("id") as? Int)!
+
+        let timestamp = NSDateFormatter.localizedStringFromDate(NSDate(), dateStyle: .MediumStyle, timeStyle: .ShortStyle)
+
+        
+        var formatter = NSDateFormatter();
+        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss ZZZ";
+        formatter.timeZone = NSTimeZone(abbreviation: "UTC");
+        let defaultTimeZoneStr = formatter.stringFromDate(NSDate());
+    
+        
+        var comment:Dictionary<String, AnyObject> = ["players":playerId,"body":commentBody,"time_stmp":defaultTimeZoneStr,"posts":posId]
+        
+        if let comments = self.mComments?.objectForKey(posId) as? NSMutableArray {
+            comments.addObject(comment)
+        }else{
+            self.mComments?.setValue(NSMutableArray(), forKey: posId)
+        }
+        println("after adding one comment, they are:")
+        println(self.mComments)
+    }
+    func getPosDataWithId(id:String)->NSDictionary? {
+        if let allPost = self.mAllPosts {
+            for item in allPost {
+                if ((item["id"] as? String) == id){
+                    return (item as? NSDictionary)!
+                }
+            }
+        }
+        return nil
+    }
     
 }

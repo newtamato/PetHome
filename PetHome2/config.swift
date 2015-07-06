@@ -17,6 +17,10 @@ let imageCell = "imageCell";
 let complexCell = "complexCell";
 let inputCommentCell = "inputCommentCell"
 
+let postTableViewWordCell = "postWorldCell"
+let postTableViewImageCell = "postImageCell"
+let commentSimpleItemRender = "commentItemCell"
+
 let TAG_POST_BODY = 1
 let TAG_POST_PUBLISHER = 2
 
