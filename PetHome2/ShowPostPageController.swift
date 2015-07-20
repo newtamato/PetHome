@@ -8,6 +8,8 @@
 
 import Foundation
 import UIKit
+import SwiftyJSON
+
 class ShowPostPageController:UIViewController,UITableViewDelegate,UITableViewDataSource {
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var txtUserName: UILabel!
@@ -16,7 +18,7 @@ class ShowPostPageController:UIViewController,UITableViewDelegate,UITableViewDat
     @IBOutlet weak var txtUserDesc: UILabel!
     
 
-    var pageData:PostPageValueData?
+    var pageData:Post?
     
     override func viewDidLoad() {
         
@@ -31,15 +33,12 @@ class ShowPostPageController:UIViewController,UITableViewDelegate,UITableViewDat
 
         if let data = pageData {
             
-            self.txtUserName.text = data.userName
-            self.txtUserDesc.text = data.userDesc
-            if (data.userImage != "mother"){
-                self.imgUserPhoto.image = UIImage(data: NSData(contentsOfURL: NSURL(fileURLWithPath: data.userImage)!)!)
-            }else{
-                self.imgUserPhoto.image = UIImage(named: data.userImage);
-            }
+            self.txtUserName.text = data.userId
+            self.txtUserDesc.text = "\(data.userId) 的基本描述"
 
-            self.btnGood.setTitle("\(data.userGoods)个赞",forState: UIControlState.Normal)
+            self.imgUserPhoto.image = UIImage(named:"mother");
+
+            self.btnGood.setTitle("\(data.goods)个赞",forState: UIControlState.Normal)
             self.tableView.dataSource = self
             self.tableView.delegate = self
 
@@ -57,23 +56,20 @@ class ShowPostPageController:UIViewController,UITableViewDelegate,UITableViewDat
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell{
         println("cell for row at index!!!\(indexPath.row)")
         var cell:UITableViewCell?
-        println(self.pageData?.postBody)
-        if let postBody = self.pageData?.postBody {
-            if ((postBody["post_img"] as? String) != "") {
+        println(self.pageData?.body)
+        if let postBody = self.pageData?.body {
+            if ((self.pageData?.img) != nil) {
                 cell = self.tableView.dequeueReusableCellWithIdentifier(postTableViewImageCell) as! PostImageCellController
                 if let imgPreview = cell?.viewWithTag(TAG_POST_IMG) as? UIImageView{
-                    var imgPath:String = postBody["post_img"] as! String
+                    var imgPath = self.pageData?.img
                     var imgURL:String = "\(SERVER_URL)/download/\(imgPath)"
-                    println(imgURL)
                     imgPreview.image = UIImage(data: NSData(contentsOfURL: NSURL(string: imgURL)!)!)
                 }
             }else{
                 cell = self.tableView.dequeueReusableCellWithIdentifier(postTableViewWordCell) as! PostWorldCellController
             }
             if let bodyLabel = cell?.viewWithTag(TAG_POST_BODY) as? UILabel{
-                if let postBody = self.pageData?.postBody{
-                    bodyLabel.text = postBody["body"] as? String
-                }
+                bodyLabel.text = postBody
             }
         }
         return cell!
@@ -83,16 +79,33 @@ class ShowPostPageController:UIViewController,UITableViewDelegate,UITableViewDat
         if (segue.identifier == "showComments"){
             println(self.pageData)
             var data:CommentPageValueData = CommentPageValueData()
-            data.posId = 4 //self.pageData?.posId
-//            data.comments = self.pageData?.comments
+            data.posId = self.pageData?.id
             println(data)
             
             (segue.destinationViewController as? ShowCommentsPageController)?.pageData = data
         }
     }
 
+    @IBAction func onGoodThisPostHandler(sender: AnyObject) {
+
+        var param = ["post_id":(self.pageData!.id)!]
+        print("onGoodThisPostHandler,\(param)" )
+        RequestManager.shareInstance().sendRequest(API_GOOD_POST, param: param, onJsonResponseComplete: onGoodThisPostComplete)
+        
+    }
     @IBAction func btnCommentHandler(sender: AnyObject) {
         println("btnCommentHandler")
         self.performSegueWithIdentifier("showComments", sender: self)
+    }
+    
+    func onGoodThisPostComplete(responseJson:JSON?,error:AnyObject?){
+        print("onGoodThisPostComplete")
+        dispatch_async(dispatch_get_main_queue(),{()->Void in
+            if let id = self.pageData?.id {
+                self.pageData = Global.shareInstance().getDataCached().goodForPost(id)
+            }
+            self.btnGood.setTitle("\(self.pageData?.goods)个赞",forState: UIControlState.Normal)
+        })
+
     }
 }

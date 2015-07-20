@@ -21,26 +21,23 @@ class ProfileViewController:UIViewController{
     @IBOutlet var txtThanks: UILabel!
     
     override func viewDidLoad() {
-        let data = Global.shareInstance().getUserProfileData()
-
+        super.viewDidLoad()
         
-        let desc = data["desc"] as! String
-        txtPlayerDesc.text = desc
+    }
+    
+    override func viewDidAppear(animated: Bool) {
+        let desc = Global.shareInstance().getDataCached().getUserData()?.getUserDesc()
+        if (desc == nil){
+            txtPlayerDesc.text = "这个家伙很懒，什么也没有留下"
+        }else{
+            txtPlayerDesc.text = desc
+        }
         
-        let name = data["name"] as! String
+        let name = Global.shareInstance().getDataCached().getUserData()?.getUserMail()
         txtPlayerName.text = name
         
-        let goods = String(stringInterpolationSegment: (data["user_goods"] as! Int))
-        txtGoods.text = goods
-        let thanks = String(stringInterpolationSegment: (data["user_thanks"] as! Int))
-        txtThanks.text = thanks
-//        let img = data["user_img"] as! String
-//        let url = NSURL(string: img)
-//        URL=
-//        let imgData = NSData(contentsOfURL: url!) //make sure your image in this url does exist, otherwise unwrap in a if let check
-//        imgPlayer.image = UIImage(data: imgData!)
-        
-        
-        
+        txtGoods.text = "10"
+        txtThanks.text = "100"
+
     }
 }

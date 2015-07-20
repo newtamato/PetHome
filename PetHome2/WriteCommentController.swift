@@ -8,12 +8,14 @@
 
 import Foundation
 import UIKit
+import SwiftyJSON
+
 class WriteCommentController:UIViewController,UITextViewDelegate {
     
     @IBOutlet weak var bottomConstraint: NSLayoutConstraint!
     @IBOutlet weak var txtComment: UITextView!
     
-    var posId:Int = 0
+    var posId:String = ""
     
     override func viewDidLoad() {
         super.viewDidLoad();
@@ -52,13 +54,25 @@ class WriteCommentController:UIViewController,UITextViewDelegate {
         textView.resignFirstResponder();
         return true
     }
-//    func textFieldShouldReturn(textField: UITextField) -> Bool{
-//        textField.resignFirstResponder()
-//        return true
-//    }
+
     @IBAction func onPublishCommentHandler(sender: AnyObject) {
         self.txtComment.resignFirstResponder();
-        Global.shareInstance().sendComment(String(self.posId),commentBody: self.txtComment.text )
-        self.navigationController?.popViewControllerAnimated(true);
+        
+        let param = ["post_id":self.posId,"text":self.txtComment.text]
+        
+        RequestManager.shareInstance().sendRequest(API_POST_COMMENT, param: param, onJsonResponseComplete: {(respnse:JSON?,error:AnyObject?) in
+                print(respnse);
+//                Global.shareInstance().sendComment(String(self.posId),commentBody: self.txtComment.text )
+                dispatch_async(dispatch_get_main_queue(), {()->Void in
+                    self.navigationController?.popViewControllerAnimated(true);
+                })
+            
+            }
+        )
+
+//
+        
     }
+    
+
 }

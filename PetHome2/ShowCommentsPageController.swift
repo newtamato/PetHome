@@ -9,12 +9,14 @@
 import Foundation
 import UIKit
 import SwiftHTTP
+import SwiftyJSON
 //
 class ShowCommentsPageController:UIViewController,UITableViewDelegate,UITableViewDataSource {
 
     @IBOutlet weak var tableView: UITableView!
     var pageData:CommentPageValueData?
-
+    var commentList:JSON?
+    var pageIndex:Int = 0
     override func viewDidLoad() {
         super.viewDidLoad()
         self.tableView.dataSource = self
@@ -23,53 +25,55 @@ class ShowCommentsPageController:UIViewController,UITableViewDelegate,UITableVie
         self.tableView.rowHeight = UITableViewAutomaticDimension
 
         self.navigationItem.rightBarButtonItem?.title = "写评论"
-        var request = HTTPTask()
-        var id:Int = 4 //self.pageData!.posId!
-        println("view did load")
-        if let comments = Global.shareInstance().getCommentsWith(id){
-            self.pageData?.comments = comments
-            self.tableView.reloadData()
-        }else{
-            request.GET("\(SERVER_URL)/getComments.json", parameters: ["postId":id ], completionHandler: {
-                
-                (response:HTTPResponse) in
+       
+        // 下拉刷新(Pull to LoadMore)
+        self.tableView.toRefreshAction({() -> () in
+            print("load more actions")
+            var page = self.pageIndex - 1
+            if (page <= 0 ){
+                page = 1
+            }
+            self.getDataFromServer(page)
 
-                    if let err = response.error{
-                        return
-                    }
+        })
+        // 上拉刷新(Pull to LoadMore)
+        self.tableView.toLoadMoreAction({ () -> () in
+            println("toLoadMoreAction success")
+            self.getDataFromServer(self.pageIndex + 1)
 
-                    if let data = response.responseObject as? NSData{
-                        let str = NSString(data: data, encoding: NSUTF8StringEncoding)
-                        println(str)
-                        
-                        let decodedJson:NSDictionary = (NSJSONSerialization.JSONObjectWithData(data, options: nil, error: nil) as? NSDictionary)!
-                        println(decodedJson)
-                        var comments:NSMutableArray = (decodedJson.objectForKey("comments") as? NSMutableArray)!
-
-                        Global.shareInstance().setCommentsData(String(id), comments:comments.mutableCopy() as! NSMutableArray)
-                        
-                        if let comments = Global.shareInstance().getCommentsWith(self.pageData!.posId!){
-                            self.pageData?.comments = comments
-                        }
-                        dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                           self.tableView.reloadData()
-                        })
-                        
-                    }
-                }
-            )
-        }
+        })
+       
     }
     override func viewDidAppear(animated: Bool) {
-        println("viewDidAppear")
-        if let comments = Global.shareInstance().getCommentsWith(4){
-            self.pageData?.comments = comments
-            self.tableView.reloadData()
-        }
+        print("view did for comment of post")
+        print(self.pageData!)
+        self.getDataFromServer(1)
+    }
+    func getDataFromServer(index:Int){
+        let postId = self.pageData!.posId!
+        var param = ["post_id":postId,"page":index,"size":6]
+        RequestManager.shareInstance().sendRequest(API_POST_COMMENT_LIST, param: param as? Dictionary<String, AnyObject>, onJsonResponseComplete:
+            {(response:JSON?,error:AnyObject?) in
+                print("get all comments",response)
+                if let size = response?["size"] {
+                    if (size == 0){
+                        self.tableView.doneRefresh()
+                        self.tableView.endLoadMoreData()
+                        return
+                    }
+                }
+                self.pageIndex = response!["page"].intValue
+                self.commentList = response!["comment_list"]
+                dispatch_async(dispatch_get_main_queue(),{()->Void in
+                    self.tableView.reloadData()
+                    self.tableView.doneRefresh()
+            })
+        })
+        
     }
     
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int{
-        if let comments = self.pageData?.comments{
+        if let comments = self.commentList?.arrayValue{
             return comments.count
         }
         return Int(0)
@@ -81,8 +85,9 @@ class ShowCommentsPageController:UIViewController,UITableViewDelegate,UITableVie
         var cell:CommentItemRenderController = (tableView.dequeueReusableCellWithIdentifier(commentSimpleItemRender) as? CommentItemRenderController)!
         cell.selectionStyle = UITableViewCellSelectionStyle.None
         if let bodyLable = cell.viewWithTag(TAG_POST_BODY) as? UILabel{
-            var commentItem = self.pageData?.comments?.objectAtIndex(indexPath.row) as? NSDictionary
-            bodyLable.text = commentItem?["body"] as? String
+//            var commentItem = self.pageData?.comments?.objectAtIndex(indexPath.row) as? NSDictionary
+            var commentItem = self.commentList?.arrayValue[indexPath.row]
+            bodyLable.text = commentItem?["text"].string
         }
         if let userImg = cell.viewWithTag(TAG_POST_AVATAR_IMG) as? UIImageView{
             userImg.image = UIImage(named: "mother")

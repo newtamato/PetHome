@@ -14,7 +14,7 @@ class Global{
 
     var mSelectedPostIndex:Int?
     var mComments:NSMutableDictionary?
-    
+    var mDataCached:DataCached?
     class func shareInstance()->Global{
         struct Singleton{
             static var predicate:dispatch_once_t = 0
@@ -25,6 +25,13 @@ class Global{
             }
         )
         return Singleton.instance!
+    }
+    
+    func getDataCached()->DataCached{
+        if (self.mDataCached == nil){
+            self.mDataCached = DataCached()
+        }
+        return self.mDataCached!
     }
     
     func setUserInfo(data:NSDictionary){
@@ -44,8 +51,8 @@ class Global{
         let data2:NSArray = data.sortedArrayUsingComparator(
         {
             (s1:AnyObject!,s2:AnyObject!)->NSComparisonResult in
-            let s1Time = s1["time_stmp"] as! String
-            let s2Time = s2["time_stmp"] as! String
+            let s1Time = s1["update_datetime"] as! String
+            let s2Time = s2["update_datetime"] as! String
             println("s1 time is \(s1Time), s2 time is \(s2Time)")
             if s1Time < s2Time {
                 println("升序")
@@ -60,8 +67,8 @@ class Global{
 //        self.mAllPosts = data
     }
     
-    func getUserRelatedPost()->NSMutableArray{
-        return self.mAllPosts!
+    func getUserRelatedPost()->NSMutableArray?{
+        return self.mAllPosts
     }
     
     func setCurrentSelectedPostIndex(index:Int){
@@ -90,7 +97,6 @@ class Global{
     func sendComment(posId:String,commentBody:String){
         println("send comment posId is \(posId) and body is \(commentBody)")
         var playerId:Int = (self.mUserData?.valueForKey("id") as? Int)!
-
         let timestamp = NSDateFormatter.localizedStringFromDate(NSDate(), dateStyle: .MediumStyle, timeStyle: .ShortStyle)
 
         

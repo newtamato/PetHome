@@ -8,6 +8,6 @@
 
 import Foundation
 class CommentPageValueData {
-    var posId:Int?
+    var posId:String?
     var comments:NSMutableArray?
 }
