@@ -15,7 +15,7 @@ class BaseRequest {
     private var param:Dictionary<String,AnyObject>?
     private var onCompleteFunc:APICallback?
     private var onJsonCompleteFunc:APIJSONCallback?
-    private var mHttpTask:HTTPTask?
+    private var  mHttpTask:HTTPTask?
 
     init(){
 
@@ -55,6 +55,7 @@ class BaseRequest {
     func startRequest(){
         if (self.mHttpTask == nil){
             self.mHttpTask = HTTPTask()
+            print("发送请求startRequest")
         }
         var param = ["api":self.action]
         if (self.param != nil ){
@@ -98,6 +99,7 @@ class BaseRequest {
 //        var fileUrl = NSURL(fileURLWithPath: "\(SERVER_URL)")!
         if (self.mHttpTask == nil){
             self.mHttpTask = HTTPTask()
+            print("上传图片请求详细信息")
         }
         var upload = HTTPUpload(data:nsData,fileName:"abc.png",mimeType:"application/octet-stream")
         self.mHttpTask!.upload("\(SERVER_URL)", method: .POST, parameters: ["api": "upload.image", "file": upload], progress: { (value: Double) in

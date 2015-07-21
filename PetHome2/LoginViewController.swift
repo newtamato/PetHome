@@ -17,7 +17,7 @@ class  LoginViewController:UIViewController{
     var data:NSObject!
     @IBAction func onConnectWithServer(sender: AnyObject) {
 
-        var request = HTTPTask()
+//        var request = HTTPTask()
         var mail:String = self.txtName.text
         var pwd:String = self.txtPasswd.text
         var jsonParam = ["email":mail,"pwd":pwd]
@@ -30,6 +30,8 @@ class  LoginViewController:UIViewController{
     
     func onLoginComplete(response:JSON?,error:AnyObject?)
     {
+        println("login successful")
+        println(response!)
         Global.shareInstance().getDataCached().setUserData(response!)
     }
     @IBAction func onClearAllData(sender: AnyObject) {

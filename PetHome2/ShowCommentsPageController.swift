@@ -87,7 +87,7 @@ class ShowCommentsPageController:UIViewController,UITableViewDelegate,UITableVie
         if let bodyLable = cell.viewWithTag(TAG_POST_BODY) as? UILabel{
 //            var commentItem = self.pageData?.comments?.objectAtIndex(indexPath.row) as? NSDictionary
             var commentItem = self.commentList?.arrayValue[indexPath.row]
-            bodyLable.text = commentItem?["text"].string
+            bodyLable.text = commentItem?["comment_text"].string
         }
         if let userImg = cell.viewWithTag(TAG_POST_AVATAR_IMG) as? UIImageView{
             userImg.image = UIImage(named: "mother")

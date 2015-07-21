@@ -87,7 +87,7 @@ class EditUserInfoPageController :UIViewController,UIImagePickerControllerDelega
             var param = ["nick":self.txtUserName.text,"text":self.txtUserDesc.text,"avatar_url":self.avatarImgUrl!,"image_url":self.petImageUrlArray!]
 
                 RequestManager.shareInstance().sendRequest(API_EDIT_USER_INFO, param: param as? Dictionary<String, AnyObject>, onJsonResponseComplete: {(response:JSON?, error:AnyObject?) in
-                    Global.shareInstance().getDataCached().setUserData(response!["userInfo"])
+                    Global.shareInstance().getDataCached().setUserData(response!)
                     dispatch_async(dispatch_get_main_queue(), {()->Void in
                         self.navigationController?.popViewControllerAnimated(true);
                     })
