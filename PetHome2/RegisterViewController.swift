@@ -8,6 +8,8 @@
 
 import Foundation
 import UIKit
+import SwiftyJSON
+
 class RegisterViewController:UIViewController {
     
     @IBOutlet weak var btnFemale: UIButton!
@@ -17,19 +19,19 @@ class RegisterViewController:UIViewController {
     @IBOutlet weak var txtPwd: UITextField!
     @IBAction func onRegisterComplete(sender: AnyObject) {
         
-        var mailStr:String = self.txtMail.text
-        var pwdStr:String = self.txtPwd.text
-        var param = ["email":mailStr,"pwd":pwdStr]
+        let mailStr:String = self.txtMail.text!
+        let pwdStr:String = self.txtPwd.text!
+        let param = ["email":mailStr,"pwd":pwdStr]
         self.txtPwd.secureTextEntry = true
-        RequestManager.shareInstance().sendRequest(API_REGISTER, param: param, onComplete: onRegisterComplete)
+        RequestManager.shareInstance().sendRequest(API_REGISTER, param: param, onJsonResponseComplete: onRegisterComplete)
 
     }
     
-    func onRegisterComplete(response:AnyObject?, error:AnyObject?){
-        print(response)
-        var userInfo:Dictionary<String,AnyObject> = (response as? Dictionary<String,AnyObject>)!
-        print(userInfo["userInfo"])
-        print((userInfo["userInfo"] as? Dictionary<String,AnyObject>)!["uid"])
+    func onRegisterComplete(response:JSON?, error:AnyObject?){
+        print(response, terminator: "")
+        print(response);
+        
+//        print((userInfo["userInfo"] as? Dictionary<String,AnyObject>)!["uid"], terminator: "")
 
 
     }

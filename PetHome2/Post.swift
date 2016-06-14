@@ -26,7 +26,7 @@ class Post {
         self.body = data["text"].string
         self.goods = data["good_num"].intValue
         self.img = data["image_url"].arrayValue
-        self.players = "Jolie"
+        self.players = data["nick"].string
     }
     func goodIt(){
         self.goods += 1

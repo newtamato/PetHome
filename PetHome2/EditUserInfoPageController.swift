@@ -22,10 +22,10 @@ class EditUserInfoPageController :UIViewController,UIImagePickerControllerDelega
     var petImageUrlArray:[String]?
     override func viewDidLoad(){
         super.viewDidLoad()
-        var tapGestureRecognizer = UITapGestureRecognizer(target:self, action:Selector("imageTapped:"))
+        let tapGestureRecognizer = UITapGestureRecognizer(target:self, action:Selector("imageTapped:"))
         self.imgPost.addGestureRecognizer(tapGestureRecognizer)
         self.imgPost.userInteractionEnabled = true
-        var pet1TapGestureRecognizer = UITapGestureRecognizer(target:self, action:Selector("imageTapped:"))
+        let pet1TapGestureRecognizer = UITapGestureRecognizer(target:self, action:Selector("imageTapped:"))
         self.petImg1.addGestureRecognizer(pet1TapGestureRecognizer)
         self.petImg1.userInteractionEnabled = true
 
@@ -51,13 +51,13 @@ class EditUserInfoPageController :UIViewController,UIImagePickerControllerDelega
     func imageTapped(sender:AnyObject){
 //        self.touchedImageView = sender as? UIImageView
         self.touchedImageView = (sender as! UITapGestureRecognizer).view as? UIImageView
-        var imagePicker:UIImagePickerController = UIImagePickerController()
+        let imagePicker:UIImagePickerController = UIImagePickerController()
         imagePicker.delegate = self
         imagePicker.allowsEditing = false
         imagePicker.sourceType = UIImagePickerControllerSourceType.PhotoLibrary
         self.presentViewController(imagePicker, animated: true, completion: nil)
     }
-    func imagePickerController(picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [NSObject : AnyObject]){
+    func imagePickerController(picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : AnyObject]){
         if let pickedImage = info[UIImagePickerControllerOriginalImage] as? UIImage {
             self.touchedImageView!.contentMode = .ScaleAspectFit
             self.touchedImageView!.image = pickedImage
@@ -72,31 +72,37 @@ class EditUserInfoPageController :UIViewController,UIImagePickerControllerDelega
         self.onUploadImageComplete(nil,error: nil)
 
     }
-    func  onUploadImageComplete(response:AnyObject?,error:AnyObject?) {
-        if let url: AnyObject = (response as? Dictionary<String,AnyObject>)?["url"]{
-            if (self.imageIndex == 0 ){
-                self.avatarImgUrl = url as? String
-            }else{
-                self.petImageUrlArray?.append(url as! String)
+    func  onUploadImageComplete(response:JSON?,error:AnyObject?) {
+        if response != nil {
+            if let url: String = response!["url"].stringValue {
+                if (self.imageIndex == 0 ){
+                    self.avatarImgUrl = url
+                }else{
+                    self.petImageUrlArray?.append(url)
+                }
             }
         }
+        
         self.imageIndex += 1
         if (self.imageIndex >= self.imageArray!.count) {
-            print(self.petImageUrlArray)
-            print(self.avatarImgUrl)
-            var param = ["nick":self.txtUserName.text,"text":self.txtUserDesc.text,"avatar_url":self.avatarImgUrl!,"image_url":self.petImageUrlArray!]
-
-                RequestManager.shareInstance().sendRequest(API_EDIT_USER_INFO, param: param as? Dictionary<String, AnyObject>, onJsonResponseComplete: {(response:JSON?, error:AnyObject?) in
-                    Global.shareInstance().getDataCached().setUserData(response!)
-                    dispatch_async(dispatch_get_main_queue(), {()->Void in
-                        self.navigationController?.popViewControllerAnimated(true);
-                    })
+            print(self.petImageUrlArray, terminator: "")
+            print(self.avatarImgUrl, terminator: "")
+            let userName = self.txtUserName.text!
+            let text = self.txtUserDesc.text!
+            
+            let param = ["nick":userName,"text":text,"avatar_url":self.avatarImgUrl!,"image_url":self.petImageUrlArray!]
+            
+            RequestManager.shareInstance().sendRequest(API_EDIT_USER_INFO, param: param as? Dictionary<String, AnyObject>, onJsonResponseComplete: {(response:JSON?, error:AnyObject?) in
+                Global.shareInstance().getDataCached().setUserData(response!)
+                dispatch_async(dispatch_get_main_queue(), {()->Void in
+                    self.navigationController?.popViewControllerAnimated(true);
+                })
             })
-           
-        } else if let imgView = self.imageArray?[self.imageIndex]{
+        }else if let imgView = self.imageArray?[self.imageIndex]{
+            
             if (imgView.image != nil ){
-                var imageData: NSData = UIImagePNGRepresentation(imgView.image);
-                RequestManager.shareInstance().uploadImage(imageData, onComplete: onUploadImageComplete)
+                let imageData: NSData = UIImagePNGRepresentation(imgView.image!)!;
+                RequestManager.shareInstance().uploadImage(imageData, onJsonResponseComplete: onUploadImageComplete)
             }
         }
     }

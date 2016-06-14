@@ -39,7 +39,7 @@ class WriteCommentController:UIViewController,UITextViewDelegate {
     // Called when the UIKeyboardDidShowNotification is sent.
     func keyboardWillBeShown(sender: NSNotification) {
         let info: NSDictionary = sender.userInfo!
-        var keyboardFrame: CGRect = (info[UIKeyboardFrameEndUserInfoKey] as! NSValue).CGRectValue()
+        let keyboardFrame: CGRect = (info[UIKeyboardFrameEndUserInfoKey] as! NSValue).CGRectValue()
         UIView.animateWithDuration(0.1, animations: { () -> Void in
             self.bottomConstraint.constant = keyboardFrame.size.height
         })
@@ -61,7 +61,7 @@ class WriteCommentController:UIViewController,UITextViewDelegate {
         let param = ["post_id":self.posId,"text":self.txtComment.text]
         
         RequestManager.shareInstance().sendRequest(API_POST_COMMENT, param: param, onJsonResponseComplete: {(respnse:JSON?,error:AnyObject?) in
-                print(respnse);
+                print(respnse, terminator: "");
 //                Global.shareInstance().sendComment(String(self.posId),commentBody: self.txtComment.text )
                 dispatch_async(dispatch_get_main_queue(), {()->Void in
                     self.navigationController?.popViewControllerAnimated(true);

@@ -13,9 +13,9 @@ public class ZLSwiftFootView: UIView {
     var scrollView:UIScrollView = UIScrollView()
     var footLabel: UILabel = UILabel()
     
-    var loadMoreAction: (() -> Void) = {}
-    var loadMoreTempAction:(() -> Void) = {}
-    var loadMoreEndTempAction:(() -> Void) = {}
+    var loadMoreAction: (() -> Void)? = {}
+    var loadMoreTempAction:(() -> Void)? = {}
+    var loadMoreEndTempAction:(() -> Void)? = {}
     
     var isEndLoadMore:Bool = false{
         willSet{
@@ -42,16 +42,15 @@ public class ZLSwiftFootView: UIView {
         super.init(frame: frame)
         self.backgroundColor = UIColor(red: 222.0/255.0, green: 222.0/255.0, blue: 222.0/255.0, alpha: 1.0)
         self.setupUI()
-        
     }
     
-    public required init(coder aDecoder: NSCoder) {
+    public required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
         // Currently it is not supported to load view from nib
     }
     
     func setupUI(){
-        var footTitleLabel:UILabel = UILabel(frame: CGRectMake(0, 0, self.frame.size.width, self.frame.size.height))
+        let footTitleLabel:UILabel = UILabel(frame: CGRectMake(0, 0, self.frame.size.width, self.frame.size.height))
         footTitleLabel.textAlignment = .Center
         footTitleLabel.text = ZLSwithRefreshFootViewText
         self.addSubview(footTitleLabel)
@@ -87,18 +86,18 @@ public class ZLSwiftFootView: UIView {
     }
     
     //MARK: KVO methods
-    public override func observeValueForKeyPath(keyPath: String, ofObject object: AnyObject, change: [NSObject : AnyObject], context: UnsafeMutablePointer<()>) {
+    public override func observeValueForKeyPath(keyPath: String?, ofObject object: AnyObject?, change: [String : AnyObject]?, context: UnsafeMutablePointer<()>) {
 
         if (self.loadMoreAction == nil) {
             return;
         }
         
-        var scrollView:UIScrollView = self.scrollView
+        let scrollView:UIScrollView = self.scrollView
         if (keyPath == contentSizeKeyPath){
             // change contentSize
             if(scrollView.isKindOfClass(UICollectionView) == true){
                 let tempCollectionView :UICollectionView = scrollView as! UICollectionView
-                var height = tempCollectionView.collectionViewLayout.collectionViewContentSize().height
+                let height = tempCollectionView.collectionViewLayout.collectionViewContentSize().height
                 self.frame.origin.y = height
             }else{
                 if (self.scrollView.contentSize.height == 0){
@@ -114,7 +113,7 @@ public class ZLSwiftFootView: UIView {
         }
 
         // change contentOffset
-        var scrollViewContentOffsetY:CGFloat = scrollView.contentOffset.y
+        let scrollViewContentOffsetY:CGFloat = scrollView.contentOffset.y
         var height = ZLSwithRefreshHeadViewHeight
         if (ZLSwithRefreshHeadViewHeight > animations){
             height = animations
@@ -125,13 +124,13 @@ public class ZLSwiftFootView: UIView {
             scrollViewContentOffsetY > 0
             )
         {
-            var nowContentOffsetY:CGFloat = scrollViewContentOffsetY + self.scrollView.frame.size.height
+            let nowContentOffsetY:CGFloat = scrollViewContentOffsetY + self.scrollView.frame.size.height
             var tableViewMaxHeight:CGFloat = 0
             
             if (scrollView.isKindOfClass(UICollectionView))
             {
                 let tempCollectionView :UICollectionView = scrollView as! UICollectionView
-                var height = tempCollectionView.collectionViewLayout.collectionViewContentSize().height
+                let height = tempCollectionView.collectionViewLayout.collectionViewContentSize().height
                 tableViewMaxHeight = height
             }else if(scrollView.contentSize.height > 0){
                 tableViewMaxHeight = scrollView.contentSize.height
@@ -146,7 +145,7 @@ public class ZLSwiftFootView: UIView {
                     if loadMoreTempAction != nil{
                         refreshStatus = .LoadMore
                         self.title = ZLSwithRefreshLoadingText
-                        loadMoreTempAction()
+                        loadMoreTempAction?()
                         loadMoreTempAction = {}
                     }else {
                         self.title = ZLSwithRefreshMessageText

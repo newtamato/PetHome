@@ -15,8 +15,8 @@ class Player {
     
     func loadData(data:JSON){
         self.mData = data["userInfo"]
-        print("load user data")
-        print(self.mData)
+        print("load user data", terminator: "")
+        print(self.mData, terminator: "")
     }
     func getUserId()->Int{
         var id = self.mData?["uid"].intValue
@@ -31,13 +31,19 @@ class Player {
         }
         return "none"
     }
-    func getUserImg()->String?{
-        return self.mData?["avatar_url"].string
+    func getUserImg()->String{
+        if let img = self.mData?["avatar_url"].string{
+            return img
+        }
+        return DefaultImg
     }
     func getUserDesc()->String?{
         return self.mData?["text"].string
     }
-
+    func getUserFollowerNumber()->Int{
+        var num = self.mData?["me_follow_num"].intValue
+        return num!
+    }
     
 
 }

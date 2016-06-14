@@ -38,4 +38,10 @@ class RequestManager {
         }
         mRequest!.uploadImage(nsData, onComplete: onComplete)
     }
+    func uploadImage(data:NSData,onJsonResponseComplete:APIJSONCallback){
+        if (mRequest == nil){
+            mRequest = BaseRequest()
+        }
+        mRequest!.uploadImage(data, onJsonResponseComplete: onJsonResponseComplete)
+    }
 }

@@ -36,8 +36,8 @@ class Global{
     
     func setUserInfo(data:NSDictionary){
         self.mUserData = data
-        println("用户的数据如下")
-        println(data)
+        print("用户的数据如下")
+        print(data)
     }
     func getUserProfileData()->NSDictionary{
         return self.mUserData!
@@ -45,25 +45,25 @@ class Global{
   
     
     func setUserRelatedPost(data:NSArray){
-        println(data)
-        println("排序之前")
+        print(data)
+        print("排序之前")
 
         let data2:NSArray = data.sortedArrayUsingComparator(
         {
             (s1:AnyObject!,s2:AnyObject!)->NSComparisonResult in
             let s1Time = s1["update_datetime"] as! String
             let s2Time = s2["update_datetime"] as! String
-            println("s1 time is \(s1Time), s2 time is \(s2Time)")
+            print("s1 time is \(s1Time), s2 time is \(s2Time)")
             if s1Time < s2Time {
-                println("升序")
+                print("升序")
                 return NSComparisonResult.OrderedDescending
             }else{
                 return NSComparisonResult.OrderedAscending
             }
         })
         self.mAllPosts = data2.mutableCopy() as! NSMutableArray
-        println("排序之后")
-        println(data)
+        print("排序之后")
+        print(data)
 //        self.mAllPosts = data
     }
     
@@ -88,33 +88,33 @@ class Global{
         }else{
             self.mComments?.setValue(comments, forKey: posId)
         }
-        println(self.mComments)
+        print(self.mComments)
     }
     func getCommentsWith(posId:Int) ->NSMutableArray? {
         let posId = String(posId)
         return (self.mComments?.objectForKey(posId) as? NSMutableArray)
     }
     func sendComment(posId:String,commentBody:String){
-        println("send comment posId is \(posId) and body is \(commentBody)")
-        var playerId:Int = (self.mUserData?.valueForKey("id") as? Int)!
+        print("send comment posId is \(posId) and body is \(commentBody)")
+        let playerId:Int = (self.mUserData?.valueForKey("id") as? Int)!
         let timestamp = NSDateFormatter.localizedStringFromDate(NSDate(), dateStyle: .MediumStyle, timeStyle: .ShortStyle)
 
         
-        var formatter = NSDateFormatter();
+        let formatter = NSDateFormatter();
         formatter.dateFormat = "yyyy-MM-dd HH:mm:ss ZZZ";
         formatter.timeZone = NSTimeZone(abbreviation: "UTC");
         let defaultTimeZoneStr = formatter.stringFromDate(NSDate());
     
         
-        var comment:Dictionary<String, AnyObject> = ["players":playerId,"body":commentBody,"time_stmp":defaultTimeZoneStr,"posts":posId]
+        let comment:Dictionary<String, AnyObject> = ["players":playerId,"body":commentBody,"time_stmp":defaultTimeZoneStr,"posts":posId]
         
         if let comments = self.mComments?.objectForKey(posId) as? NSMutableArray {
             comments.addObject(comment)
         }else{
             self.mComments?.setValue(NSMutableArray(), forKey: posId)
         }
-        println("after adding one comment, they are:")
-        println(self.mComments)
+        print("after adding one comment, they are:")
+        print(self.mComments)
     }
     func getPosDataWithId(id:String)->NSDictionary? {
         if let allPost = self.mAllPosts {

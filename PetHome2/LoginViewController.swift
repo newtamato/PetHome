@@ -12,14 +12,17 @@ import UIKit
 import SwiftyJSON
 class  LoginViewController:UIViewController{
     
+    @IBOutlet weak var lableWarning: UILabel!
     @IBOutlet weak var txtName: UITextField!
+    
+    @IBOutlet weak var btnLogin: UIButton!
     @IBOutlet weak var txtPasswd: UITextField!
     var data:NSObject!
     @IBAction func onConnectWithServer(sender: AnyObject) {
 
 //        var request = HTTPTask()
-        var mail:String = self.txtName.text
-        var pwd:String = self.txtPasswd.text
+        var mail:String = self.txtName.text!
+        var pwd:String = self.txtPasswd.text!
         var jsonParam = ["email":mail,"pwd":pwd]
         
 
@@ -30,9 +33,26 @@ class  LoginViewController:UIViewController{
     
     func onLoginComplete(response:JSON?,error:AnyObject?)
     {
-        println("login successful")
-        println(response!)
-        Global.shareInstance().getDataCached().setUserData(response!)
+        print("login successful")
+        print(response!)
+        
+        let retMsg = response!["retMsg"].stringValue as? String
+        let success = "success"
+        if  retMsg != success  {
+            print(retMsg);
+            
+            dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                self.lableWarning.text = "login failed"
+            })
+
+        }else{
+            Global.shareInstance().getDataCached().setUserData(response!)
+             dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                self.performSegueWithIdentifier("showMainPage", sender: self.btnLogin)
+            })
+            
+        }
+        
     }
     @IBAction func onClearAllData(sender: AnyObject) {
         txtName.text = ""
@@ -40,5 +60,6 @@ class  LoginViewController:UIViewController{
     }
     
    
+
 
 }

@@ -10,6 +10,7 @@ import Foundation
 import UIKit
 class PostImageCellController:UITableViewCell {
     
+    @IBOutlet weak var heightOfImg: NSLayoutConstraint!
     @IBOutlet weak var imgPost: UIImageView!
     @IBOutlet weak var txtBody: UILabel!
 }

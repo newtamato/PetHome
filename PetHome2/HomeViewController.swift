@@ -36,12 +36,10 @@ class HomeViewController: UIViewController,UITableViewDataSource,UITableViewDele
         self.tableViewOfPost.dataSource = self
         self.tableViewOfPost.delegate = self
 
-        
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: "keyboardWillBeShown:", name: UIKeyboardDidShowNotification, object: nil)
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: "keyboardWillBeHidden:", name: UIKeyboardWillHideNotification, object: nil)
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: "onUpdatePostList:",name:NotificationUpDataPostList,object:nil)
+
         
         // 下拉刷新(Pull to LoadMore)
+        /*
         self.tableViewOfPost.toRefreshAction({() -> () in
             print("load more actions")
             var page = self.pageIndex - 1
@@ -49,14 +47,13 @@ class HomeViewController: UIViewController,UITableViewDataSource,UITableViewDele
                 page = 1
             }
             self.getDataFromServer(page)
-//            self.tableViewOfPost.endLoadMoreData()
         })
         // 上拉刷新(Pull to LoadMore)
         self.tableViewOfPost.toLoadMoreAction({ () -> () in
             println("toLoadMoreAction success")
             self.getDataFromServer(self.pageIndex + 1)
-//            self.tableViewOfPost.endLoadMoreData()
         })
+        */
     }
     override func viewDidDisappear(animated: Bool) {
         super.viewWillDisappear(animated)
@@ -73,26 +70,27 @@ class HomeViewController: UIViewController,UITableViewDataSource,UITableViewDele
             self.getDataFromServer(1)
         }
         
-        println(self.view.frame.size.width)
+        print(self.view.frame.size.width)
     }
     func getDataFromServer(pageIndex:Int){
+        print("pageIndex is \(pageIndex)")
         RequestManager.shareInstance().sendRequest(API_ALL_USER_POST,param: ["page":pageIndex,"size":10] ,onJsonResponseComplete: onFetchPostComplete)
     }
     
     func onFetchPostComplete(response:JSON?,error:AnyObject?){
 
-        print(response)
-        var page = response!["page"].intValue
+        print(response, terminator: "")
+        let page = response!["page"].intValue
         if (self.pageIndex == page) {
 //            self.tableViewOfPost.doneRefresh()
-            self.tableViewOfPost.endLoadMoreData()
-            self.tableViewOfPost.doneRefresh()
+//            self.tableViewOfPost.endLoadMoreData()
+//            self.tableViewOfPost.doneRefresh()
             return
         }
         if let size = response?["size"] {
             if (size  == 0 ){
-                self.tableViewOfPost.endLoadMoreData()
-                self.tableViewOfPost.doneRefresh()
+//                self.tableViewOfPost.endLoadMoreData()
+//                self.tableViewOfPost.doneRefresh()
                 return
             }
         }
@@ -103,28 +101,13 @@ class HomeViewController: UIViewController,UITableViewDataSource,UITableViewDele
             self.allPost =  Global.shareInstance().getDataCached().getHomePosts()
             dispatch_async(dispatch_get_main_queue(), { () -> Void in
                 self.tableViewOfPost.reloadData()
-                self.tableViewOfPost.doneRefresh()
+//                self.tableViewOfPost.doneRefresh()
             })
         }
     }
-    // Called when the UIKeyboardDidShowNotification is sent.
-    func keyboardWillBeShown(sender: NSNotification) {
-        let info: NSDictionary = sender.userInfo!
-       
-        var keyboardFrame: CGRect = (info[UIKeyboardFrameEndUserInfoKey] as! NSValue).CGRectValue()
-//        animateViewMoving(true, moveValue: keyboardFrame.size.height)
-        UIView.animateWithDuration(0.1, animations: { () -> Void in
-            self.commentPostBottomCons.constant = keyboardFrame.size.height
-        })
-        
-    }
+
     
-    // Called when the UIKeyboardWillHideNotification is sent
-    func keyboardWillBeHidden(sender: NSNotification) {
-        let contentInsets: UIEdgeInsets = UIEdgeInsetsZero
-        self.tableViewOfPost.contentInset = UIEdgeInsetsMake(self.tableViewOfPost.contentInset.top, 0, 0, 0);
-        self.tableViewOfPost.scrollIndicatorInsets = contentInsets
-    }
+   
     
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int{
         if let data = self.allPost{
@@ -134,7 +117,7 @@ class HomeViewController: UIViewController,UITableViewDataSource,UITableViewDele
     }
 
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-        println("didSelectRowAtIndexPath")
+        print("didSelectRowAtIndexPath")
         self.selectedIndex = indexPath.row
         self.performSegueWithIdentifier("showPostPage", sender: self);
     }
@@ -143,7 +126,7 @@ class HomeViewController: UIViewController,UITableViewDataSource,UITableViewDele
         if(segue.identifier == "showPostPage"){
             let localPostData = PostPageValueData()
             if (self.selectedIndex >= 0 ){
-                var postData:Post = self.allPost?.objectAtIndex(self.selectedIndex) as! Post
+                let postData:Post = self.allPost?.objectAtIndex(self.selectedIndex) as! Post
                 
                 (segue.destinationViewController as! ShowPostPageController).pageData = postData
             }
@@ -155,16 +138,28 @@ class HomeViewController: UIViewController,UITableViewDataSource,UITableViewDele
         var cell:UITableViewCell?
         if let itemData = self.allPost?.objectAtIndex(indexPath.row) as? Post{
             var firstImg = itemData.getFirstImage()
-            if (firstImg != nil ) {
-                cell = self.tableViewOfPost.dequeueReusableCellWithIdentifier(complexCell) as? UITableViewCell
+            if (firstImg != nil && firstImg != "" ) {
+                cell = self.tableViewOfPost.dequeueReusableCellWithIdentifier(complexCell)! as UITableViewCell
                 if let imgView = cell?.viewWithTag(TAG_POST_IMG) as? UIImageView{
-
-                    let url = NSURL(string:firstImg!)
-                    let data = NSData(contentsOfURL: url!)
-                    imgView.image = UIImage(data: data!)
+                    do{
+                        firstImg = firstImg?.stringByReplacingOccurrencesOfString("index.php/", withString: "")
+                        let url = NSURL(string: firstImg!)!
+                        
+                        print("图片的地址\(url)")
+                        NSURLConnection.sendAsynchronousRequest(NSURLRequest(URL:url), queue: NSOperationQueue.mainQueue(), completionHandler: { (response:NSURLResponse?, imageData:NSData?, error:NSError?) -> Void in
+                            if let data = imageData {
+                                imgView.image = UIImage(data: data)
+                            }
+                            
+                        })
+                        
+                    }catch let error{
+                        print("cell 上面展示图片\(error)")
+                    }
+                
                 }
             }else{
-                cell = self.tableViewOfPost.dequeueReusableCellWithIdentifier(wordCell) as! UITableViewCell
+                cell = self.tableViewOfPost.dequeueReusableCellWithIdentifier(wordCell)! as UITableViewCell
             }
 
             cell?.selectionStyle = UITableViewCellSelectionStyle.None
@@ -181,7 +176,7 @@ class HomeViewController: UIViewController,UITableViewDataSource,UITableViewDele
                 commonBtn.setExtraData(indexPath.row)
             }
             if let commonBtn = cell?.viewWithTag(TAG_POST_FOLLOW_BTN) as? CommentButton{
-                var isFollowed = Global.shareInstance().getDataCached().isFollowWithUid(nil, someUid: itemData.userId)
+                let isFollowed = Global.shareInstance().getDataCached().isFollowWithUid(nil, someUid: itemData.userId)
                 if (isFollowed == false){
                     commonBtn.userInteractionEnabled = true
                     commonBtn.setExtraData(indexPath.row)
@@ -196,9 +191,14 @@ class HomeViewController: UIViewController,UITableViewDataSource,UITableViewDele
                 avatarImg.image = UIImage(named: "mother")
             }
             if let bodyLable = cell?.viewWithTag(TAG_POST_BODY) as? UILabel{
-                bodyLable.text = itemData.body
+                if itemData.body != nil && itemData.body == "内容：" {
+                        bodyLable.text = "there is nothing!"
+                }else{
+                     bodyLable.text =  itemData.body
+                }
+                
             }
-            if let nameLabel = cell?.viewWithTag(TAG_POST_PUBLISHER) as? UILabel{
+            if let nameLabel = cell?.viewWithTag(TAG_POST_USER_NAME) as? UILabel{
                  nameLabel.text = itemData.players
             }
             
@@ -210,8 +210,8 @@ class HomeViewController: UIViewController,UITableViewDataSource,UITableViewDele
     
    
     func animateViewMoving (up:Bool, moveValue :CGFloat){
-        var movementDuration:NSTimeInterval = 0.3
-        var movement:CGFloat = ( up ? -moveValue : moveValue)
+        let movementDuration:NSTimeInterval = 0.3
+        let movement:CGFloat = ( up ? -moveValue : moveValue)
         UIView.beginAnimations( "animateView", context: nil)
         UIView.setAnimationBeginsFromCurrentState(true)
         UIView.setAnimationDuration(movementDuration )
@@ -227,7 +227,7 @@ class HomeViewController: UIViewController,UITableViewDataSource,UITableViewDele
             self.selectedPostData = self.allPost?.objectAtIndex(rowIndex) as? Post
             
             var param = ["uid":self.selectedPostData!.userId]
-            print("\(param)")
+            print("\(param)", terminator: "")
             RequestManager.shareInstance().sendRequest(API_USER_FOLLOW, param: param, onJsonResponseComplete: onFollowPosterComplete)
         }
     }
@@ -248,28 +248,28 @@ class HomeViewController: UIViewController,UITableViewDataSource,UITableViewDele
         }
     }
         func onGoodPostCompleteHandler(response:JSON?,error:AnyObject?){
-            print("onGoodPostCompleteHandler\(response)")
+            print("onGoodPostCompleteHandler\(response)", terminator: "")
         }
     func commentThisPostHandler(sender:AnyObject){
         if let btn = sender as? CommentButton{
             let rowIndex = btn.getExtraData()
-            println(rowIndex)
+            print(rowIndex)
             if (rowIndex >= 0 ){
             }
         }
         
-        println("commentThisPostHandler")
+        print("commentThisPostHandler")
     }
         
     @IBAction func sendPost(sender: AnyObject) {
-        let body = (sender as! UITextField).text
-        var param = ["text":body]
-        var request:BaseRequest = BaseRequest(action: API_PUBLISH_POST, param: param)
+        let body = (sender as! UITextField).text!
+        let param = ["text":body]
+        let request:BaseRequest = BaseRequest(action: API_PUBLISH_POST, param: param)
         request.startRequest()
     }
     
     func onUpdatePostList(sender:AnyObject){
-        print("upate post list right now!")
+        print("upate post list right now!", terminator: "")
         self.onFetchPostComplete(nil,error: nil)
     }
     @IBAction func onSelectedTheActionHandler(sender: AnyObject) {

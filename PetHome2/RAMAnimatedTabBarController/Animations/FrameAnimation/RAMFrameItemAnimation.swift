@@ -42,7 +42,7 @@ class RAMFrameItemAnimation: RAMItemAnimation {
         createImagesArray(animationImagesName)
 
         // selected image
-        var selectedImageName = animationImagesName[animationImagesName.endIndex - 1]
+        let selectedImageName = animationImagesName[animationImagesName.endIndex - 1]
         selectedImage = UIImage(named: selectedImageName)
     }
 
@@ -62,7 +62,7 @@ class RAMFrameItemAnimation: RAMItemAnimation {
 
     override func deselectAnimation(icon : UIImageView, textLabel : UILabel, defaultTextColor : UIColor) {
         if isDeselectAnimation {
-            playFrameAnimation(icon, images:animationImages.reverse())
+            playFrameAnimation(icon, images:Array(animationImages.reverse()))
         }
 
         textLabel.textColor = defaultTextColor
@@ -74,7 +74,7 @@ class RAMFrameItemAnimation: RAMItemAnimation {
     }
 
     func playFrameAnimation(icon : UIImageView, images : Array<CGImage>) {
-        var frameAnimation = CAKeyframeAnimation(keyPath: "contents")
+        let frameAnimation = CAKeyframeAnimation(keyPath: "contents")
         frameAnimation.calculationMode = kCAAnimationDiscrete
         frameAnimation.duration = NSTimeInterval(duration)
         frameAnimation.values = images

@@ -18,6 +18,8 @@ class ShowPostPageController:UIViewController,UITableViewDelegate,UITableViewDat
     @IBOutlet weak var txtUserDesc: UILabel!
     
 
+   
+
     var pageData:Post?
     
     override func viewDidLoad() {
@@ -42,7 +44,7 @@ class ShowPostPageController:UIViewController,UITableViewDelegate,UITableViewDat
             self.tableView.dataSource = self
             self.tableView.delegate = self
 
-            println("reload tableView data")
+            print("reload tableView data")
             self.tableView.reloadData()
 
         }
@@ -54,16 +56,21 @@ class ShowPostPageController:UIViewController,UITableViewDelegate,UITableViewDat
     }
     
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell{
-        println("cell for row at index!!!\(indexPath.row)")
+        print("cell for row at index!!!\(indexPath.row)")
+        print(self.pageData?.img)
         var cell:UITableViewCell?
-        println(self.pageData?.body)
+        print(self.pageData?.body)
         if let postBody = self.pageData?.body {
-            if ((self.pageData?.img) != nil) {
+            if let imgs = self.pageData?.img {
                 cell = self.tableView.dequeueReusableCellWithIdentifier(postTableViewImageCell) as! PostImageCellController
                 if let imgPreview = cell?.viewWithTag(TAG_POST_IMG) as? UIImageView{
-                    var imgPath = self.pageData?.img
-                    var imgURL:String = "\(SERVER_URL)/download/\(imgPath)"
-                    imgPreview.image = UIImage(data: NSData(contentsOfURL: NSURL(string: imgURL)!)!)
+                    if (imgs.count > 0 ){
+                        var imgPath = imgs[0].string
+                        imgPreview.image = UIImage(data: NSData(contentsOfURL: NSURL(string: imgPath!)!)!)
+                           (cell as? PostImageCellController)?.heightOfImg.constant = 200
+                    }else{
+                        (cell as? PostImageCellController)?.heightOfImg.constant = 1
+                    }
                 }
             }else{
                 cell = self.tableView.dequeueReusableCellWithIdentifier(postTableViewWordCell) as! PostWorldCellController
@@ -75,31 +82,31 @@ class ShowPostPageController:UIViewController,UITableViewDelegate,UITableViewDat
         return cell!
     }
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        print("prepareForSegue\(segue.identifier)asdfasfdasfdasdfassdf")
+        print("prepareForSegue\(segue.identifier)asdfasfdasfdasdfassdf", terminator: "")
         if (segue.identifier == "showComments"){
-            println(self.pageData)
-            var data:CommentPageValueData = CommentPageValueData()
+            print(self.pageData)
+            let data:CommentPageValueData = CommentPageValueData()
             data.posId = self.pageData?.id
-            println(data)
+            print(data)
             
             (segue.destinationViewController as? ShowCommentsPageController)?.pageData = data
         }
     }
-
+    
     @IBAction func onGoodThisPostHandler(sender: AnyObject) {
 
         var param = ["post_id":(self.pageData!.id)!]
-        print("onGoodThisPostHandler,\(param)" )
+        print("onGoodThisPostHandler,\(param)", terminator: "" )
         RequestManager.shareInstance().sendRequest(API_GOOD_POST, param: param, onJsonResponseComplete: onGoodThisPostComplete)
         
     }
     @IBAction func btnCommentHandler(sender: AnyObject) {
-        println("btnCommentHandler")
+        print("btnCommentHandler")
         self.performSegueWithIdentifier("showComments", sender: self)
     }
     
     func onGoodThisPostComplete(responseJson:JSON?,error:AnyObject?){
-        print("onGoodThisPostComplete")
+        print("onGoodThisPostComplete", terminator: "")
         dispatch_async(dispatch_get_main_queue(),{()->Void in
             if let id = self.pageData?.id {
                 self.pageData = Global.shareInstance().getDataCached().goodForPost(id)

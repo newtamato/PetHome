@@ -8,42 +8,43 @@
 
 import UIKit
 
-enum RefreshStatus{
+public enum RefreshStatus{
     case Normal, Refresh, LoadMore
 }
 
-enum HeaderViewRefreshAnimationStatus{
+public enum HeaderViewRefreshAnimationStatus{
     case headerViewRefreshPullAnimation, headerViewRefreshLoadingAnimation, headerViewRefreshArrowAnimation
 }
 
 var loadMoreAction: (() -> ()) = {}
 var refreshStatus:RefreshStatus = .Normal
 let animations:CGFloat = 60.0
+var isFooterViewHidden:Bool?
 var tableViewOriginContentInset:UIEdgeInsets = UIEdgeInsetsZero
 
 extension UIScrollView: UIScrollViewDelegate {
     
     public var headerRefreshView: ZLSwiftHeadView? {
         get {
-            var headerRefreshView = viewWithTag(ZLSwiftHeadViewTag)
+            let headerRefreshView = viewWithTag(ZLSwiftHeadViewTag)
             return headerRefreshView as? ZLSwiftHeadView
         }
     }
     
     public var footerRefreshView: ZLSwiftFootView? {
         get {
-            var footerRefreshView = viewWithTag(ZLSwiftFootViewTag)
+            let footerRefreshView = viewWithTag(ZLSwiftFootViewTag)
             return footerRefreshView as? ZLSwiftFootView
         }
     }
     
     //MARK: Refresh
     //下拉刷新
-    func toRefreshAction(action :(() -> Void)){
+    public func toRefreshAction(action :(() -> Void)){
         
         self.alwaysBounceVertical = true
         if self.headerRefreshView == nil{
-            var headView:ZLSwiftHeadView = ZLSwiftHeadView(action: action,frame: CGRectMake(0, -ZLSwithRefreshHeadViewHeight, self.frame.size.width, ZLSwithRefreshHeadViewHeight))
+            let headView:ZLSwiftHeadView = ZLSwiftHeadView(action: action,frame: CGRectMake(0, -ZLSwithRefreshHeadViewHeight, self.frame.size.width, ZLSwithRefreshHeadViewHeight))
             headView.scrollView = self
             headView.tag = ZLSwiftHeadViewTag
             self.addSubview(headView)
@@ -52,7 +53,7 @@ extension UIScrollView: UIScrollViewDelegate {
     
     //MARK: LoadMore
     //上拉加载更多
-    func toLoadMoreAction(action :(() -> Void)){
+    public func toLoadMoreAction(action :(() -> Void)){
         if (refreshStatus == .LoadMore){
             refreshStatus = .Normal
         }
@@ -60,12 +61,25 @@ extension UIScrollView: UIScrollViewDelegate {
         self.addLoadMoreView(action)
     }
     
-    func addLoadMoreView(action :(() -> Void)){
+    public func showFooterView(){
+        isFooterViewHidden = false
+        self.footerRefreshView?.hidden = false
+    }
+    
+    public func hiddenFooterView(){
+        isFooterViewHidden = true
+        self.footerRefreshView?.hidden = true
+    }
+    
+    public func addLoadMoreView(action :(() -> Void)){
         self.alwaysBounceVertical = true
         loadMoreAction = action
         if self.footerRefreshView == nil {
-            var footView = ZLSwiftFootView(action: action, frame: CGRectMake( 0 , UIScreen.mainScreen().bounds.size.height - ZLSwithRefreshFootViewHeight, self.frame.size.width, ZLSwithRefreshFootViewHeight))
+            let footView = ZLSwiftFootView(action: action, frame: CGRectMake( 0 , UIScreen.mainScreen().bounds.size.height - ZLSwithRefreshFootViewHeight, self.frame.size.width, ZLSwithRefreshFootViewHeight))
             footView.scrollView = self
+            if (isFooterViewHidden != nil){
+                footView.hidden = isFooterViewHidden!
+            }
             footView.tag = ZLSwiftFootViewTag
             self.addSubview(footView)
         }
@@ -73,10 +87,10 @@ extension UIScrollView: UIScrollViewDelegate {
     
     //MARK: nowRefresh
     //立马上拉刷新
-    func nowRefresh(action :(() -> Void)){
+    public func nowRefresh(action :(() -> Void)){
         self.alwaysBounceVertical = true
         if self.headerRefreshView == nil {
-            var headView:ZLSwiftHeadView = ZLSwiftHeadView(action: action,frame: CGRectMake(0, -ZLSwithRefreshHeadViewHeight, self.frame.size.width, ZLSwithRefreshHeadViewHeight))
+            let headView:ZLSwiftHeadView = ZLSwiftHeadView(action: action,frame: CGRectMake(0, -ZLSwithRefreshHeadViewHeight, self.frame.size.width, ZLSwithRefreshHeadViewHeight))
             headView.scrollView = self
             headView.tag = ZLSwiftHeadViewTag
             self.addSubview(headView)
@@ -84,14 +98,14 @@ extension UIScrollView: UIScrollViewDelegate {
             self.headerRefreshView?.action = action
         }
         
-        self.headerRefreshView?.nowLoading = true
         self.headerRefreshView?.nowAction = action
+        self.headerRefreshView?.nowLoading = true
     }
-
-    func headerViewRefreshAnimationStatus(status:HeaderViewRefreshAnimationStatus, images:[UIImage]){
+    
+    public func headerViewRefreshAnimationStatus(status:HeaderViewRefreshAnimationStatus, images:[UIImage]){
         // 箭头动画是自带的效果
         if self.headerRefreshView == nil {
-            var headView:ZLSwiftHeadView = ZLSwiftHeadView(action: {},frame: CGRectMake(0, -ZLSwithRefreshHeadViewHeight, self.frame.size.width, ZLSwithRefreshHeadViewHeight))
+            let headView:ZLSwiftHeadView = ZLSwiftHeadView(action: {},frame: CGRectMake(0, -ZLSwithRefreshHeadViewHeight, self.frame.size.width, ZLSwithRefreshHeadViewHeight))
             headView.scrollView = self
             headView.tag = ZLSwiftHeadViewTag
             self.addSubview(headView)
@@ -114,22 +128,22 @@ extension UIScrollView: UIScrollViewDelegate {
     
     //MARK: endLoadMoreData
     //数据加载完毕
-    func endLoadMoreData() {
-        var footView:ZLSwiftFootView = self.viewWithTag(ZLSwiftFootViewTag) as! ZLSwiftFootView
+    public func endLoadMoreData() {
+        let footView:ZLSwiftFootView = self.viewWithTag(ZLSwiftFootViewTag) as! ZLSwiftFootView
         footView.isEndLoadMore = true
     }
     
     //MARK: doneRefersh
     //完成刷新
-    func doneRefresh(){
-        if var headerView:ZLSwiftHeadView = self.viewWithTag(ZLSwiftHeadViewTag) as? ZLSwiftHeadView {
+    public func doneRefresh(){
+        if let headerView:ZLSwiftHeadView = self.viewWithTag(ZLSwiftHeadViewTag) as? ZLSwiftHeadView {
             headerView.stopAnimation()
         }
         refreshStatus = .Normal
         
-        if (loadMoreAction != nil){
-            toLoadMoreAction(loadMoreAction)
-        }
+        //        if (loadMoreAction != nil){
+        //            toLoadMoreAction(loadMoreAction)
+        //        }
     }
     
 }

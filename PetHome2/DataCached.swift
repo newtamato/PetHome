@@ -17,7 +17,7 @@ class DataCached {
     
     func setUserData(data:JSON){
         
-        print(data)
+        print(data, terminator: "")
         
         self.userData = Player()
         self.userData?.loadData(data)
@@ -42,7 +42,7 @@ class DataCached {
         if (self.allPosts == nil){
             self.allPosts = NSMutableArray()
         }
-        print(postInfo)
+        print(postInfo, terminator: "")
         var localPostItem:Post = Post()
         localPostItem.loadData(postInfo)
         self.allPosts?.insertObject(localPostItem, atIndex: 0)
@@ -83,14 +83,14 @@ class DataCached {
     }
     
     func goodForPost(postId:String)->Post{
-        var postData = self.getPostDataByPostId(postId)
+        let postData = self.getPostDataByPostId(postId)
         postData?.goodIt()
         return postData!
     }
     
     func commentsForPost(postId:String,commentData:Comment){
-        var postData = self.getPostDataByPostId(postId)
-        var mutiArray:NSMutableArray = NSMutableArray()
+        let postData = self.getPostDataByPostId(postId)
+        let mutiArray:NSMutableArray = NSMutableArray()
         mutiArray.addObject(postData!)
 //        self.loadCommentData(postId,data: mutiArray)
     }
@@ -116,7 +116,7 @@ class DataCached {
             newUid = String(stringInterpolationSegment: self.userData?.getUserId())
         }
         if let followers = self.follower?.objectForKey(newUid!) as? NSMutableArray{
-            var index = followers.indexOfObject(someUid)
+            let index = followers.indexOfObject(someUid)
             if index > -1 {
                 return true
             }
